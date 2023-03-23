@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
+using routerOSApiHandler.Models;
 
-namespace routerOSApiHandler;
+namespace routerOSApiHandler.Handlers;
 
 /// <summary>
 /// Defines an object for handling the RouterOS Wireguard Service.
@@ -49,18 +50,20 @@ public class WireguardServer
     }
     
     /// <summary>
-    /// 
+    /// Requests all Wireguard interfaces from the server and saves it as a list of WireguardInterface
+    /// objects in the Interfaces variable.
     /// </summary>
-    public async Task UpdateWireguardInterfaces()
+    public async Task UpdateInterfaces()
     {
         var jsonString = await _server.Get("interface/wireguard");
         Interfaces = JsonConvert.DeserializeObject<List<WireguardInterface>>(jsonString);
     }
     
     /// <summary>
-    /// 
+    /// Requests all Wireguard peers from the server and saves it as a list of WireguardPeers objects
+    /// in the Peers variable.
     /// </summary>
-    public async Task UpdateWireguardPeers()
+    public async Task UpdatePeers()
     {
         var jsonString = await _server.Get("interface/wireguard/peers");
         Peers = JsonConvert.DeserializeObject<List<WireguardPeer>>(jsonString);

@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace routerOSApiHandler;
+namespace routerOSApiHandler.Models;
 
 /// <summary>
 /// Model class of a Wireguard Interface for deserialize from RouterOS API.
