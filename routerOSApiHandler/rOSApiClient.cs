@@ -1,4 +1,6 @@
-﻿namespace routerOSApiHandler;
+﻿using System.Text;
+
+namespace routerOSApiHandler;
 
 /// <summary>
 /// Defines an object than handles RouterOS RestAPI calls.
@@ -32,8 +34,9 @@ public class rOSApiClient
         _authHeader = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(authToken));
     }
     /// <summary>
-    /// Takes a single parameter named "request" and returns a string representing the URI for the RESTful API call.
-    /// The "request" parameter is used to build the path part of the URI.
+    /// Gets a full URI based on a request in a RouterOS path string.
+    /// <param name="request">Path to desired object in RouterOS without RestAPI URL.</param>
+    /// <returns>Full URI of an RouterOS object.</returns>
     /// </summary>
     private string RequestUri(string request)
     {
@@ -46,9 +49,9 @@ public class rOSApiClient
         };
     }
     /// <summary>
-    /// takes a single parameter named "request" and returns a string representing the response from the RouterOS API.
-    /// The "request" parameter is used to construct the URI for the RESTful API call by calling the private
-    /// "RequestUri" method.
+    /// Request an object from the RestAPI server.
+    /// <param name="request">Path to desired object in RouterOS without RestAPI URL.</param>
+    /// <returns>A string representing the response from the RouterOS API.</returns>
     /// </summary>
     public async Task<string> Get(string request)
     {
@@ -62,5 +65,17 @@ public class rOSApiClient
         return response;
     }
     
-    
+    /// <summary>
+    /// Sends a PATCH request to the server for updating records.
+    /// </summary>
+    /// <param name="request">Path to desired object in RouterOS without RestAPI URL.</param>
+    /// <param name="jsonData">The data to be updated in JSON format.</param>
+    public async Task Patch(string request, string jsonData)
+    {
+        using var apiClient = new HttpClient();
+        apiClient.DefaultRequestHeaders.Authorization = _authHeader;
+        var requestContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var requestUri = RequestUri(request);
+        await apiClient.PatchAsync(requestUri,requestContent);
+    }
 }
