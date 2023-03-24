@@ -34,32 +34,32 @@ public class rOSApiClient
         _authHeader = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(authToken));
     }
     /// <summary>
-    /// Gets a full URI based on a request in a RouterOS path string.
-    /// <param name="request">Path to desired object in RouterOS without RestAPI URL.</param>
+    /// Gets a full URI based on a RouterOS requestPath string.
+    /// <param name="requestPath">Path to desired object in RouterOS without RestAPI URL.</param>
     /// <returns>Full URI of an RouterOS object.</returns>
     /// </summary>
-    private string RequestUri(string request)
+    private string RequestUri(string requestPath)
     {
         var scheme = _useSsl ? "https://" : "http://";
         return _useSsl switch
         {
-            true when _portNumber == 443 => scheme + _restApiServer + "/rest/" + request,
-            false when _portNumber == 80 => scheme + _restApiServer + "/rest/" + request,
-            _ => scheme + _restApiServer + ":" + _portNumber + "/rest/" + request
+            true when _portNumber == 443 => scheme + _restApiServer + "/rest/" + requestPath,
+            false when _portNumber == 80 => scheme + _restApiServer + "/rest/" + requestPath,
+            _ => scheme + _restApiServer + ":" + _portNumber + "/rest/" + requestPath
         };
     }
     /// <summary>
     /// Request an object from the RestAPI server.
-    /// <param name="request">Path to desired object in RouterOS without RestAPI URL.</param>
+    /// <param name="requestPath">Path to desired object in RouterOS without RestAPI URL.</param>
     /// <returns>A string representing the response from the RouterOS API.</returns>
     /// </summary>
-    public async Task<string> Get(string request)
+    public async Task<string> Get(string requestPath)
     {
-        // get the full URI for the request:
-        var uri = RequestUri(request);
+        // get the full URI for the requestPath:
+        var uri = RequestUri(requestPath);
         using var apiClient = new HttpClient();
         apiClient.DefaultRequestHeaders.Authorization = _authHeader;
-        // Send the RESTful API request to the RouterOS server.
+        // Send the RESTful API requestPath to the RouterOS server.
         // The response from the RouterOS API is returned as a string.
         var response = await apiClient.GetStringAsync(uri);
         return response;
@@ -68,14 +68,40 @@ public class rOSApiClient
     /// <summary>
     /// Sends a PATCH request to the server for updating records.
     /// </summary>
-    /// <param name="request">Path to desired object in RouterOS without RestAPI URL.</param>
-    /// <param name="jsonData">The data to be updated in JSON format.</param>
-    public async Task Patch(string request, string jsonData)
+    /// <param name="requestPath">Path to desired object in RouterOS without RestAPI URL.</param>
+    /// <param name="jsonData">A Json object containing the updated parameters for the record.</param>
+    public async Task Patch(string requestPath, string jsonData)
     {
         using var apiClient = new HttpClient();
         apiClient.DefaultRequestHeaders.Authorization = _authHeader;
         var requestContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-        var requestUri = RequestUri(request);
-        await apiClient.PatchAsync(requestUri,requestContent);
+        var requestUri = RequestUri(requestPath);
+        await apiClient.PatchAsync(requestUri, requestContent);
+    }
+    
+    /// <summary>
+    /// Sends a DELETE request to the server for updating records.
+    /// </summary>
+    /// <param name="requestPath">Path to desired object in RouterOS without RestAPI URL.</param>
+    /// <param name="jsonData">A JSON object containing parameters for a new record.</param>
+    public async Task Put(string requestPath, string jsonData)
+    {
+        using var apiClient = new HttpClient();
+        apiClient.DefaultRequestHeaders.Authorization = _authHeader;
+        var requestContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var requestUri = RequestUri(requestPath);
+        await apiClient.PutAsync(requestUri, requestContent);
+    }
+    
+    /// <summary>
+    /// Sends a DELETE request to the server for deleting records.
+    /// </summary>
+    /// <param name="requestPath">Path to desired object in RouterOS without RestAPI URL.</param>
+    public async Task Delete(string requestPath)
+    {
+        using var apiClient = new HttpClient();
+        apiClient.DefaultRequestHeaders.Authorization = _authHeader;
+        var requestUri = RequestUri(requestPath);
+        await apiClient.DeleteAsync(requestUri);
     }
 }
