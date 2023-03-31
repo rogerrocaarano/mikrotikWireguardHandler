@@ -25,31 +25,6 @@ public class WireguardServer
     }
     
     /// <summary>
-    /// Takes in an id as a parameter and returns an object of WireguardInterface type, using the Get method to
-    /// retrieve data from an API endpoint that corresponds to the specified id.
-    /// </summary>
-    /// <param name="rosId">RouterOS id parameter of the interface</param>
-    /// <returns>Wireguard Interface object</returns>
-    public WireguardInterface GetInterfaceWireguard(string rosId)
-    {
-        var getIface = Task.Run(async () => await _server.Get("interface/wireguard/" + rosId));
-        var jsonString = getIface.Result;
-        return JsonConvert.DeserializeObject<WireguardInterface>(jsonString);
-    }
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="rosId"></param>
-    /// <returns></returns>
-    public WireguardInterface GetWireguardPeer(string rosId)
-    {
-        var getIface = Task.Run(async () => await _server.Get("interface/wireguard/peer/" + rosId));
-        var jsonString = getIface.Result;
-        return JsonConvert.DeserializeObject<WireguardInterface>(jsonString);
-    }
-    
-    /// <summary>
     /// Requests all Wireguard interfaces from the server and saves it as a list of WireguardInterface
     /// objects in the Interfaces variable.
     /// </summary>
@@ -67,5 +42,28 @@ public class WireguardServer
     {
         var jsonString = await _server.Get("interface/wireguard/peers");
         Peers = JsonConvert.DeserializeObject<List<WireguardPeer>>(jsonString);
+    }
+
+    /// <summary>
+    /// Creates a new Interface on the server.
+    /// </summary>
+    /// <param name="iface">WiregaurdInterface object containing the data to create a new interface.</param>
+    public async Task NewInterface(WireguardInterface iface)
+    {
+        // Verify if the interface name already exists.
+        if (Interfaces.Exists(existingIface => iface.Name == existingIface.Name))
+        {
+            var message = "Interface" + iface.Name + "already exists.";
+            Console.WriteLine(message);
+            return;
+        }
+        // Serialize the iface data, ignoring null parameters.
+        var json = JsonConvert.SerializeObject(
+            iface, 
+            new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore}
+        ); 
+        // Send the request to the restAPI and update the Interfaces list.
+        await _server.Put("interface/wireguard", json);
+        await UpdateInterfaces();
     }
 }

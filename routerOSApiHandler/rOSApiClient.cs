@@ -70,38 +70,47 @@ public class rOSApiClient
     /// </summary>
     /// <param name="requestPath">Path to desired object in RouterOS without RestAPI URL.</param>
     /// <param name="jsonData">A Json object containing the updated parameters for the record.</param>
-    public async Task Patch(string requestPath, string jsonData)
+    public async Task<HttpResponseMessage> Patch(string requestPath, string jsonData)
     {
         using var apiClient = new HttpClient();
         apiClient.DefaultRequestHeaders.Authorization = _authHeader;
         var requestContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
         var requestUri = RequestUri(requestPath);
-        await apiClient.PatchAsync(requestUri, requestContent);
+        var response = await apiClient.PatchAsync(requestUri, requestContent);
+        var log = "rOSApiClient - Request Type: PATCH StatusCode: " + response.StatusCode;
+        Console.WriteLine(log);
+        return response;
     }
     
     /// <summary>
-    /// Sends a DELETE request to the server for updating records.
+    /// Sends a PUT request to the server for creating new records.
     /// </summary>
     /// <param name="requestPath">Path to desired object in RouterOS without RestAPI URL.</param>
     /// <param name="jsonData">A JSON object containing parameters for a new record.</param>
-    public async Task Put(string requestPath, string jsonData)
+    public async Task<HttpResponseMessage> Put(string requestPath, string jsonData)
     {
         using var apiClient = new HttpClient();
         apiClient.DefaultRequestHeaders.Authorization = _authHeader;
         var requestContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
         var requestUri = RequestUri(requestPath);
-        await apiClient.PutAsync(requestUri, requestContent);
+        var response = await apiClient.PutAsync(requestUri, requestContent);
+        var log = "rOSApiClient - Request Type: PUT StatusCode: " + response.StatusCode;
+        Console.WriteLine(log);
+        return response;
     }
     
     /// <summary>
     /// Sends a DELETE request to the server for deleting records.
     /// </summary>
     /// <param name="requestPath">Path to desired object in RouterOS without RestAPI URL.</param>
-    public async Task Delete(string requestPath)
+    public async Task<HttpResponseMessage> Delete(string requestPath)
     {
         using var apiClient = new HttpClient();
         apiClient.DefaultRequestHeaders.Authorization = _authHeader;
         var requestUri = RequestUri(requestPath);
-        await apiClient.DeleteAsync(requestUri);
+        var response = await apiClient.DeleteAsync(requestUri);
+        var log = "rOSApiClient - Request Type: DELETE StatusCode: " + response.StatusCode;
+        Console.WriteLine(log);
+        return response;
     }
 }
