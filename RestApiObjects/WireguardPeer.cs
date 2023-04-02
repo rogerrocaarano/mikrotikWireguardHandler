@@ -12,7 +12,7 @@ public class WireguardPeer
     [JsonProperty("comment")] public string? Comment { get; set; }
     [JsonProperty("current-endpoint-address")] public string? CurrentEndpointAddress { get; set; }
     [JsonProperty("current-endpoint-port")] public string? CurrentEndpointPort { get; set; }
-    [JsonProperty("disabled")] public bool Disabled { get; set; }
+    [JsonProperty("disabled")] public bool? Disabled { get; set; }
     [JsonProperty("endpoint-address")] public string? EndpointAddress { get; set; }
     [JsonProperty("endpoint-port")] public string? EndpointPort { get; set; }
     [JsonProperty("interface")] public string? Interface { get; set; }
