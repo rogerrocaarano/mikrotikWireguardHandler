@@ -34,7 +34,9 @@ public class WireguardServer
         return Interfaces.Exists(existingIface => name == existingIface.Name);
     }
     
-    //todo: Documentation.
+    /// <summary>
+    /// Helper function for finding if a peer exists in the Peers list.
+    /// </summary>
     private bool PeerExists(WireguardPeer peer)
     {
         return Peers.Exists(existingPeer => peer.PublicKey == existingPeer.PublicKey);
@@ -169,6 +171,10 @@ public class WireguardServer
         await _server.Delete(requestPath);
     }
     
+    /// <summary>
+    /// Creates a new Peer in the server.
+    /// </summary>
+    /// <param name="peer">WireguardPeer object containing the data to create a new peer.</param>
     public async Task NewPeer(WireguardPeer peer)
     {
         if (PeerExists(peer))
@@ -183,6 +189,10 @@ public class WireguardServer
         await _server.Put("interface/wireguard/peer", json);
     }
 
+    /// <summary>
+    /// Updates existing peer parameters.
+    /// </summary>
+    /// <param name="peer">The peer object with updated parameters.</param>
     public async Task SetPeer(WireguardPeer peer)
     {
         if (PeerExists(peer))
@@ -192,9 +202,36 @@ public class WireguardServer
             await _server.Patch(requestPath, json);
         }
     }
+    
+    /// <summary>
+    /// Deletes a peer from the server.
+    /// </summary>
+    /// <param name="peer">WireguardPeer object than contains an Id used to delete it from the server.</param>
     public async Task DeletePeer(WireguardPeer peer)
     {
         var requestPath = "interface/wireguard/peer/" + peer.Id;
         await _server.Delete(requestPath);
+    }
+
+    /// <summary>
+    /// Generates a private and public 64-base encoded key pair, using NewInterface() method as a generator.
+    /// It's not a proper way to do it, but it gets the job done.
+    /// </summary>
+    /// <returns>WireguardKeyPair object.</returns>
+    public async Task<WireguardKeyPair> GenerateKeys()
+    {
+        // Create a dummy interface for generating keys.
+        var keyGenInterface = new WireguardInterface();
+        keyGenInterface.Name = "keyGen";
+        await NewInterface(keyGenInterface);
+        await UpdateInterfaces();
+        keyGenInterface = Interfaces.Find(iface => iface.Name.Equals("keyGen"));
+        // Get keyPair from the generated interface.
+        var keyPair = new WireguardKeyPair();
+        keyPair.PublicKey = keyGenInterface.PublicKey;
+        keyPair.PrivateKey = keyGenInterface.PrivateKey;
+        await DeleteInterface(keyGenInterface);
+        await UpdateInterfaces();
+        return keyPair;
     }
 }
