@@ -1,7 +1,7 @@
+using mikrotikWireguardHandler.RestApiObjects;
 using Newtonsoft.Json;
-using routerOSApiHandler.RestApiObjects;
 
-namespace routerOSApiHandler;
+namespace mikrotikWireguardHandler;
 
 /// <summary>
 /// Defines an object for handling the RouterOS Wireguard Service.

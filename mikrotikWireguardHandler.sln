@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "routerOSApiHandler", "routerOSApiHandler\routerOSApiHandler.csproj", "{592C9961-6FA6-4BF3-9D36-37F56FBDDA27}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mikrotikWireguardHandler", "mikrotikWireguardHandler.csproj", "{592C9961-6FA6-4BF3-9D36-37F56FBDDA27}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

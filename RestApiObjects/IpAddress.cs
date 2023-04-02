@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-namespace routerOSApiHandler.RestApiObjects;
+namespace mikrotikWireguardHandler.RestApiObjects;
 
 public class IpAddress
 {

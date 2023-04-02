@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace routerOSApiHandler;
+namespace mikrotikWireguardHandler;
 
 /// <summary>
 /// Defines an object than handles RouterOS RestAPI calls.

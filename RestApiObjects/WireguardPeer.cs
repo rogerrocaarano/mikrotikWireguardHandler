@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace routerOSApiHandler.RestApiObjects;
+namespace mikrotikWireguardHandler.RestApiObjects;
 
 /// <summary>
 /// Model class of a Wireguard Peer for deserialize from RouterOS API.
