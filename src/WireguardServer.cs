@@ -24,12 +24,7 @@ public class WireguardServer
     {
         _server = server;
     }
-    
-    /// <summary>
-    /// Requests all Wireguard interfaces from the server and saves it as a list of WireguardInterface
-    /// objects in the Interfaces variable.
-    /// </summary>
-    
+
     /// <summary>
     /// Helper function for finding if an interface exists in the Interfaces list.
     /// </summary>
@@ -39,17 +34,28 @@ public class WireguardServer
         return Interfaces.Exists(existingIface => name == existingIface.Name);
     }
     
+    //todo: Documentation.
+    private bool PeerExists(WireguardPeer peer)
+    {
+        return Peers.Exists(existingPeer => peer.PublicKey == existingPeer.PublicKey);
+    }
+    
     /// <summary>
     /// Helper function for serialize a WireguardInterface object removing null values in attributes.
     /// </summary>
-    private string SerializeInterface(WireguardInterface iface)
+    private string SerializeIgnoringNull(Object toSerialize)
     {
         var json = JsonConvert.SerializeObject(
-            iface,
+            toSerialize,
             new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
         );
         return json;
     }
+    
+    /// <summary>
+    /// Requests all Wireguard interfaces from the server and saves it as a list of WireguardInterface
+    /// objects in the Interfaces variable.
+    /// </summary>
     public async Task UpdateInterfaces()
     {
         var jsonString = await _server.Get("interface/wireguard");
@@ -110,7 +116,8 @@ public class WireguardServer
             return;
         }
         // Serialize the iface data, ignoring null parameters.
-        var json = SerializeInterface(iface);
+        var json = SerializeIgnoringNull(iface);
+        Console.WriteLine(json);
         // Send the request to the restAPI and update the Interfaces list.
         await _server.Put("interface/wireguard", json);
     }
@@ -123,7 +130,7 @@ public class WireguardServer
     {
         if (InterfaceExists(iface.Name))
         {
-            var json = SerializeInterface(iface);
+            var json = SerializeIgnoringNull(iface);
             var requestPath = "interface/wireguard/" + iface.Name;
             await _server.Patch(requestPath, json);
         }
@@ -144,6 +151,11 @@ public class WireguardServer
             {
                 await DeleteAddress(address);
             }
+            // Delete all peers associated with the interface
+            foreach (var peer in Peers.Where(peer => peer.Interface == iface.Name))
+            {
+                await DeletePeer(peer);
+            }
         }
     }
     
@@ -154,6 +166,35 @@ public class WireguardServer
     public async Task DeleteAddress(IpAddress address)
     {
         var requestPath = "ip/address/" + address.Id;
+        await _server.Delete(requestPath);
+    }
+    
+    public async Task NewPeer(WireguardPeer peer)
+    {
+        if (PeerExists(peer))
+        {
+            var message = "Peer " + peer.PublicKey + " already exists.";
+            Console.WriteLine(message);
+            return;
+        }
+        // Serialize the peer data, ignoring null parameters.
+        var json = SerializeIgnoringNull(peer);
+        // Send the request to the restAPI and update the Peers list.
+        await _server.Put("interface/wireguard/peer", json);
+    }
+
+    public async Task SetPeer(WireguardPeer peer)
+    {
+        if (PeerExists(peer))
+        {
+            var json = SerializeIgnoringNull(peer);
+            var requestPath = "interface/wireguard/peer/" + peer.Id;
+            await _server.Patch(requestPath, json);
+        }
+    }
+    public async Task DeletePeer(WireguardPeer peer)
+    {
+        var requestPath = "interface/wireguard/peer/" + peer.Id;
         await _server.Delete(requestPath);
     }
 }
