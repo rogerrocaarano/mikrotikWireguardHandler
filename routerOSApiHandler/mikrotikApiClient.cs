@@ -5,7 +5,7 @@ namespace routerOSApiHandler;
 /// <summary>
 /// Defines an object than handles RouterOS RestAPI calls.
 /// </summary>
-public class rOSApiClient
+public class mikrotikApiClient
 {
     // Mikrotik RestAPI Server FQDN
     private readonly string _restApiServer;
@@ -24,13 +24,13 @@ public class rOSApiClient
     /// <param name="ssl">Defines if the RestAPI client will use an SSL connection.</param>
     /// <param name="user">Router's username for RestAPI requests.</param>
     /// <param name="password">Router's password for RestAPI requests</param>
-    public rOSApiClient(string serverFqdn, int portNumber, bool ssl, string user, string password)
+    public mikrotikApiClient(string serverFqdn, int portNumber, bool ssl, string user, string password)
     {
         _restApiServer = serverFqdn;
         _useSsl = ssl;
         _portNumber = portNumber;
         // generate an authToken for basic HTTP Auth and create a header for the requests.
-        var authToken = System.Text.Encoding.UTF8.GetBytes($"{user}:{password}");
+        var authToken = Encoding.UTF8.GetBytes($"{user}:{password}");
         _authHeader = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(authToken));
     }
     /// <summary>
@@ -77,7 +77,7 @@ public class rOSApiClient
         var requestContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
         var requestUri = RequestUri(requestPath);
         var response = await apiClient.PatchAsync(requestUri, requestContent);
-        var log = "rOSApiClient - Request Type: PATCH StatusCode: " + response.StatusCode;
+        var log = "mikrotikApiClient - Request Type: PATCH StatusCode: " + response.StatusCode;
         Console.WriteLine(log);
         return response;
     }
@@ -94,7 +94,7 @@ public class rOSApiClient
         var requestContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
         var requestUri = RequestUri(requestPath);
         var response = await apiClient.PutAsync(requestUri, requestContent);
-        var log = "rOSApiClient - Request Type: PUT StatusCode: " + response.StatusCode;
+        var log = "mikrotikApiClient - Request Type: PUT StatusCode: " + response.StatusCode;
         Console.WriteLine(log);
         return response;
     }
@@ -109,7 +109,7 @@ public class rOSApiClient
         apiClient.DefaultRequestHeaders.Authorization = _authHeader;
         var requestUri = RequestUri(requestPath);
         var response = await apiClient.DeleteAsync(requestUri);
-        var log = "rOSApiClient - Request Type: DELETE StatusCode: " + response.StatusCode;
+        var log = "mikrotikApiClient - Request Type: DELETE StatusCode: " + response.StatusCode;
         Console.WriteLine(log);
         return response;
     }

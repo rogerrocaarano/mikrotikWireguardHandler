@@ -1,25 +1,26 @@
 using Newtonsoft.Json;
-using routerOSApiHandler.Models;
+using routerOSApiHandler.RestApiObjects;
 
-namespace routerOSApiHandler.Handlers;
+namespace routerOSApiHandler;
 
 /// <summary>
 /// Defines an object for handling the RouterOS Wireguard Service.
 /// </summary>
 public class WireguardServer
 {
-    // Defines the rOSApiClient object used for manage the restAPI requests
-    private readonly rOSApiClient _server;
+    // Defines the mikrotikApiClient object used for manage the restAPI requests
+    private readonly mikrotikApiClient _server;
     // Lists all Wireguard Interfaces
     public List<WireguardInterface>? Interfaces { get; set; }
     // Lists all Wireguard Peers
     public List<WireguardPeer>? Peers { get; set; }
+    public List<IpAddress>? Addresses { get; set; }
 
     /// <summary>
-    /// Creates a WireguardServer object based on a rOSApiClient
+    /// Creates a WireguardServer object based on a mikrotikApiClient
     /// </summary>
-    /// <param name="server">rOSApiClient Object</param>
-    public WireguardServer(rOSApiClient server)
+    /// <param name="server">mikrotikApiClient Object</param>
+    public WireguardServer(mikrotikApiClient server)
     {
         _server = server;
     }
@@ -28,6 +29,27 @@ public class WireguardServer
     /// Requests all Wireguard interfaces from the server and saves it as a list of WireguardInterface
     /// objects in the Interfaces variable.
     /// </summary>
+    
+    /// <summary>
+    /// Helper function for finding if an interface exists in the Interfaces list.
+    /// </summary>
+    
+    private bool InterfaceExists(string name)
+    {
+        return Interfaces.Exists(existingIface => name == existingIface.Name);
+    }
+    
+    /// <summary>
+    /// Helper function for serialize a WireguardInterface object removing null values in attributes.
+    /// </summary>
+    private string SerializeInterface(WireguardInterface iface)
+    {
+        var json = JsonConvert.SerializeObject(
+            iface,
+            new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
+        );
+        return json;
+    }
     public async Task UpdateInterfaces()
     {
         var jsonString = await _server.Get("interface/wireguard");
@@ -45,28 +67,39 @@ public class WireguardServer
     }
 
     /// <summary>
-    /// Helper function for finding if an interface exists in the Interfaces list.
+    /// Request all IP Addresses than belongs to a Wireguard interface on the server and saves it as a list of
+    /// IpAddress objects.
     /// </summary>
-    private bool InterfaceExists(string name)
+    public async Task UpdateAddresses()
     {
-        return Interfaces.Exists(existingIface => name == existingIface.Name);
+        var jsonString = await _server.Get("ip/address");
+        var routerAddresses = JsonConvert.DeserializeObject<List<IpAddress>>(jsonString);
+        await UpdateInterfaces();
+        var validAddress = new List<IpAddress>();
+        foreach (var address in routerAddresses)
+        {
+            if (Interfaces.Exists(wireguardInterface => address.Interface == wireguardInterface.Name))
+            {
+                validAddress.Add(address);
+            }
+        }
+        Addresses = validAddress;
+    }
+
+    /// <summary>
+    /// Request all server information such as interfaces, addresses and peers.
+    /// </summary>
+    public async Task Update()
+    {
+        await UpdateInterfaces();
+        await UpdateAddresses();
+        await UpdatePeers();
     }
     
     /// <summary>
-    /// Helper function for serialize a WireguardInterface object removing null values in attributes.
-    /// </summary>
-    private string SerializeInterface(WireguardInterface iface)
-    {
-        var json = JsonConvert.SerializeObject(
-            iface,
-            new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
-        );
-        return json;
-    }
-    /// <summary>
     /// Creates a new Interface on the server.
     /// </summary>
-    /// <param name="iface">WiregaurdInterface object containing the data to create a new interface.</param>
+    /// <param name="iface">WireguardInterface object containing the data to create a new interface.</param>
     public async Task NewInterface(WireguardInterface iface)
     {
         // Verify if the interface name already exists.
@@ -80,7 +113,6 @@ public class WireguardServer
         var json = SerializeInterface(iface);
         // Send the request to the restAPI and update the Interfaces list.
         await _server.Put("interface/wireguard", json);
-        await UpdateInterfaces();
     }
 
     /// <summary>
@@ -94,7 +126,6 @@ public class WireguardServer
             var json = SerializeInterface(iface);
             var requestPath = "interface/wireguard/" + iface.Name;
             await _server.Patch(requestPath, json);
-            await UpdateInterfaces();
         }
     }
 
@@ -108,6 +139,21 @@ public class WireguardServer
         {
             var requestPath = "interface/wireguard/" + iface.Name;
             await _server.Delete(requestPath);
+            // Delete addresses associated with the interface
+            foreach (var address in Addresses.Where(address => address.Interface == iface.Name))
+            {
+                await DeleteAddress(address);
+            }
         }
+    }
+    
+    /// <summary>
+    /// Deletes an ip address from the server.
+    /// </summary>
+    /// <param name="address">IpAddress object than contains an Id used to delete it from the server.</param>
+    public async Task DeleteAddress(IpAddress address)
+    {
+        var requestPath = "ip/address/" + address.Id;
+        await _server.Delete(requestPath);
     }
 }
