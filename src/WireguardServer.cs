@@ -29,9 +29,9 @@ public class WireguardServer
     /// Helper function for finding if an interface exists in the Interfaces list.
     /// </summary>
     
-    private bool InterfaceExists(string name)
+    private bool InterfaceExists(WireguardInterface iface)
     {
-        return Interfaces.Exists(existingIface => name == existingIface.Name);
+        return Interfaces != null && Interfaces.Exists(existingIface => iface.Name == existingIface.Name);
     }
     
     /// <summary>
@@ -39,7 +39,7 @@ public class WireguardServer
     /// </summary>
     private bool PeerExists(WireguardPeer peer)
     {
-        return Peers.Exists(existingPeer => peer.PublicKey == existingPeer.PublicKey);
+        return Peers != null && Peers.Exists(existingPeer => peer.PublicKey == existingPeer.PublicKey);
     }
     
     /// <summary>
@@ -84,13 +84,16 @@ public class WireguardServer
         var routerAddresses = JsonConvert.DeserializeObject<List<IpAddress>>(jsonString);
         await UpdateInterfaces();
         var validAddress = new List<IpAddress>();
-        foreach (var address in routerAddresses)
-        {
-            if (Interfaces.Exists(wireguardInterface => address.Interface == wireguardInterface.Name))
+        if (routerAddresses != null)
+            foreach (var address in routerAddresses)
             {
-                validAddress.Add(address);
+                if (Interfaces != null &&
+                    Interfaces.Exists(wireguardInterface => address.Interface == wireguardInterface.Name))
+                {
+                    validAddress.Add(address);
+                }
             }
-        }
+
         Addresses = validAddress;
     }
 
@@ -110,8 +113,8 @@ public class WireguardServer
     /// <param name="iface">WireguardInterface object containing the data to create a new interface.</param>
     public async Task NewInterface(WireguardInterface iface)
     {
-        // Verify if the interface name already exists.
-        if (InterfaceExists(iface.Name))
+        // Verify if the interface already exists.
+        if (iface.Name != null && InterfaceExists(iface))
         {
             var message = "Interface" + iface.Name + "already exists.";
             Console.WriteLine(message);
@@ -130,7 +133,7 @@ public class WireguardServer
     /// <param name="iface">The interface object with updated parameters.</param>
     public async Task SetInterface(WireguardInterface iface)
     {
-        if (InterfaceExists(iface.Name))
+        if (InterfaceExists(iface))
         {
             var json = SerializeIgnoringNull(iface);
             var requestPath = "interface/wireguard/" + iface.Name;
@@ -144,20 +147,23 @@ public class WireguardServer
     /// <param name="iface">The interface object to delete.</param>
     public async Task DeleteInterface(WireguardInterface iface)
     {
-        if (InterfaceExists(iface.Name))
+        if (InterfaceExists(iface))
         {
             var requestPath = "interface/wireguard/" + iface.Name;
             await _server.Delete(requestPath);
             // Delete addresses associated with the interface
-            foreach (var address in Addresses.Where(address => address.Interface == iface.Name))
-            {
-                await DeleteAddress(address);
-            }
+            if (Addresses != null)
+                foreach (var address in Addresses.Where(address => address.Interface == iface.Name))
+                {
+                    await DeleteAddress(address);
+                }
+
             // Delete all peers associated with the interface
-            foreach (var peer in Peers.Where(peer => peer.Interface == iface.Name))
-            {
-                await DeletePeer(peer);
-            }
+            if (Peers != null)
+                foreach (var peer in Peers.Where(peer => peer.Interface == iface.Name))
+                {
+                    await DeletePeer(peer);
+                }
         }
     }
     
