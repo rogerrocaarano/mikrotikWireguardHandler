@@ -189,6 +189,13 @@ public class WireguardServer
             Console.WriteLine(message);
             return;
         }
+        // If no public key is provided, generate a keypair.
+        if (peer.PublicKey == null)
+        {
+            var keys = await GenerateKeys();
+            peer.PublicKey = keys.PublicKey;
+            peer.PrivateKey = keys.PrivateKey;
+        }
         // Serialize the peer data, ignoring null parameters.
         var json = SerializeIgnoringNull(peer);
         // Send the request to the restAPI and update the Peers list.

@@ -18,4 +18,5 @@ public class WireguardPeer
     [JsonProperty("interface")] public string? Interface { get; set; }
     [JsonProperty("last-handshake")] public string? LastHandshake { get; set; }
     [JsonProperty("public-key")] public string? PublicKey { get; set; }
+    public string? PrivateKey { get; set; }
 }
