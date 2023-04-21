@@ -170,10 +170,10 @@ public class WireguardServer
     /// <summary>
     /// Deletes an ip address from the server.
     /// </summary>
-    /// <param name="address">IpAddress object than contains an Id used to delete it from the server.</param>
+    /// <param name="address">IpAddress object than contains an RosId used to delete it from the server.</param>
     public async Task DeleteAddress(IpAddress address)
     {
-        var requestPath = "ip/address/" + address.Id;
+        var requestPath = "ip/address/" + address.RosId;
         await _server.Delete(requestPath);
     }
     
@@ -211,7 +211,7 @@ public class WireguardServer
         if (PeerExists(peer))
         {
             var json = SerializeIgnoringNull(peer);
-            var requestPath = "interface/wireguard/peer/" + peer.Id;
+            var requestPath = "interface/wireguard/peer/" + peer.RosId;
             await _server.Patch(requestPath, json);
         }
     }
@@ -219,10 +219,10 @@ public class WireguardServer
     /// <summary>
     /// Deletes a peer from the server.
     /// </summary>
-    /// <param name="peer">WireguardPeer object than contains an Id used to delete it from the server.</param>
+    /// <param name="peer">WireguardPeer object than contains an RosId used to delete it from the server.</param>
     public async Task DeletePeer(WireguardPeer peer)
     {
-        var requestPath = "interface/wireguard/peer/" + peer.Id;
+        var requestPath = "interface/wireguard/peer/" + peer.RosId;
         await _server.Delete(requestPath);
     }
 

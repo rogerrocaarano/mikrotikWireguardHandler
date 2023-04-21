@@ -7,7 +7,7 @@ namespace mikrotikWireguardHandler.RestApiObjects;
 /// </summary>
 public class WireguardPeer
 {
-    [JsonProperty(".id")] public string? Id { get; set; }
+    [JsonProperty(".id")] public string? RosId { get; set; }
     [JsonProperty("allowed-address")] public string? AllowedAddress { get; set; }
     [JsonProperty("comment")] public string? Comment { get; set; }
     [JsonProperty("current-endpoint-address")] public string? CurrentEndpointAddress { get; set; }
